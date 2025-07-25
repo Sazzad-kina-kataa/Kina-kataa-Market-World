@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kina‑Kataa MARKET WORLD</title>
+  <style>
+    :root { --primary: #00bcd4; --secondary: #e0f7fa; }
+    body { font-family: sans-serif; margin: 0; background: #fff; color: #333; }
+    header { background: var(--primary); color: white; padding: 15px; text-align: center; }
+    .filter-bar { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; background: var(--secondary); padding: 10px; }
+    .filter-bar input, .filter-bar select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(250px,1fr)); gap: 15px; padding: 15px; }
+    .product-card { border: 1px solid #ddd; border-radius: 8px; padding: 10px; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+    .product-card h3 { margin: 10px 0 5px; font-size: 18px; }
+    button { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+
+    /* স্লাইডার স্টাইল */
+    .slider {
+      position: relative;
+      overflow: hidden;
+      height: 180px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .slider .slides {
+      display: flex;
+      transition: transform 0.4s ease-in-out;
+      height: 180px;
+    }
+    .slider .slides img {
+      width: 100%;
+      flex-shrink: 0;
+      object-fit: cover;
+      border-radius: 5px;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .slider .count-label {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      user-select: none;
+    }
+    .slider .slider-buttons {
+      position: absolute;
+      top: 50%;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+    .slider .slider-buttons button {
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      user-select: none;
+      pointer-events: auto;
+    }
+
+    #orderFormContainer {
+      display: none; position: fixed; top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.5); justify-content: center; align-items: center;
+      z-index: 1000;
+    }
+    #orderForm {
+      background: white; padding: 20px; border-radius: 10px;
+      width: 90%; max-width: 400px;
+    }
+    #orderForm h2 { margin-top: 0; }
+    #orderForm label { display: block; margin-top: 10px; }
+    #orderForm input, #orderForm select {
+      width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;
+    }
+    #closeFormBtn { margin-top: 15px; background: #ccc; color: #000; }
+    #totalPrice { font-weight: bold; margin-top: 15px; font-size: 16px; color: green; }
+    footer { background:#333; color:#fff; text-align:center; padding:15px; margin-top: 40px; }
+    footer a { color: #fff; text-decoration: underline; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0% { color: #e91e63; }
+      50% { color: #c2185b; }
+      100% { color: #e91e63; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Kina‑Kataa MARKET WORLD</h1>
+  <p>WhatsApp: 01728898569</p>
+</header>
+
+<!-- অর্ডার করার নিয়ম -->
+<div style="background:#fffde7; padding:15px; margin:15px; border-left:5px solid #ffc107; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.05);">
+  <h3 style="color:#d32f2f; margin-top:0;">📌 বিশেষ দ্রষ্টব্য / অর্ডার করার নিয়ম:</h3>
+
+  <div id="noticeShort" style="font-size:16px; line-height:1.8;">
+    <ul style="padding-left: 20px; margin:0;">
+      <li>পছন্দ মতো প্রডাক্ট সিলেক্ট করে ✅ অর্ডার করুন।</li>
+      <li>ফর্ম পূরণ করে কনফার্ম বাটন না পেলে Enter চাপুন।</li>
+    </ul>
+    <button onclick="toggleNotice()" style="margin-top:10px; background:#ffc107; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">আরো দেখুন ⬇</button>
+  </div>
+
+  <div id="noticeFull" style="display:none; font-size:16px; line-height:1.8;">
+    <ul style="padding-left: 20px; margin:0;">
+      <li>আপনাদের পছন্দ মতো প্রডাক্ট সিলেক্ট করে <strong>✅ অর্ডার</strong> বাটনে ক্লিক করুন।</li>
+      <li>তারপর <strong>ফর্মটি পূরণ করুন</strong> (যদি কনফার্ম বাটন না দেখা যায়, তাহলে আপনার মোবাইলের কিবোর্ডে <strong>Enter</strong> চাপুন)।</li>
+      <li>এখন আপনাকে <strong>WhatsApp</strong> এ নিয়ে যাবে আমাদের অফিসিয়াল ইনবক্সে।</li>
+      <li>আপনার অর্ডার/তথ্য <strong>টাইপিং বক্সে প্রস্তুত থাকবে</strong>, আপনি শুধু <strong>Send</strong> বাটনে ক্লিক করুন।</li>
+      <li><span style="color:#d84315; font-weight:bold;">❗ কোনো ভুল বা সমস্যা থাকলে চিন্তা করবেন না</span> — আপনার অর্ডার তখনো <strong>Pending</strong> অবস্থায় থাকবে।</li>
+      <li>আমাদের অফিস থেকে <strong>যত দ্রুত সম্ভব কনফার্মেশন মেসেজ</strong> পাঠানো হবে।</li>
+      <li>আপনি তখন <strong>রং / পরিমাণ / ঠিকানা</strong> সহ সব তথ্য <strong>Edit</strong> করতে পারবেন।</li>
+      <li>আমরা আপনাকে <strong>সকল প্রকার সাহায্য করব</strong> ইনশাআল্লাহ। 🤝</li>
+    </ul>
+    <button onclick="toggleNotice()" style="margin-top:10px; background:#ffc107; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">← লুকাও</button>
+  </div>
+</div>
+
+<script>
+  function toggleNotice() {
+    const shortNotice = document.getElementById('noticeShort');
+    const fullNotice = document.getElementById('noticeFull');
+    if (shortNotice.style.display === 'none') {
+      shortNotice.style.display = 'block';
+      fullNotice.style.display = 'none';
+    } else {
+      shortNotice.style.display = 'none';
+      fullNotice.style.display = 'block';
+    }
+  }
+</script>
+
+<div class="filter-bar">
+  <input type="text" id="searchInput" placeholder="পণ্য খুঁজুন…" oninput="filterProducts()" />
+  <select id="categorySelect" onchange="filterProducts()">
+    <option value="all">সকল বিভাগ</option>
+    <option value="mobile">মোবাইল</option>
+    <option value="electronics">ইলেকট্রনিক্স</option>
+    <option value="fashion">ফ্যাশন</option>
+    <option value="home decor">হোম ডেকর</option>
+    <option value="grocery">গ্রোসারি</option>
+    <option value="beauty">বিউটি</option>
+    <option value="sports">স্পোর্টস</option>
+    <option value="toys">টয়েজ</option>
+    <option value="books">বই</option>
+  </select>
+</div>
+
+<div id="products" class="product-grid"></div>
+
+<div id="orderFormContainer">
+  <form id="orderForm" onsubmit="submitOrder(event)">
+    <h2>অর্ডার ফর্ম</h2>
+    <p><strong>পণ্য:</strong> <span id="formProductName"></span></p>
+    <p><strong>মূল্য:</strong> ৳<span id="formProductPrice"></span></p>
+    <p><strong>ডেলিভারি:</strong> ৳<span id="formDeliveryCharge"></span></p>
+
+    <label for="colorSelect">রঙ:</label>
+    <select id="colorSelect" required>
+      <option value="">-- রঙ নির্বাচন করুন --</option>
+      <option value="লাল">লাল</option>
+      <option value="নীল">নীল</option>
+      <option value="কালো">কালো</option>
+      <option value="সাদা">সাদা</option>
+      <option value="সবুজ">সবুজ</option>
+    </select>
+
+    <label for="quantityInput">পরিমাণ:</label>
+    <input type="number" id="quantityInput" min="1" value="1" required/>
+
+    <label for="nameInput">নাম:</label>
+    <input type="text" id="nameInput" required/>
+
+    <label for="phoneInput">মোবাইল:</label>
+    <input type="tel" id="phoneInput" pattern="01[3-9][0-9]{8}" required/>
+
+    <label for="addressInput">ঠিকানা:</label>
+    <input type="text" id="addressInput" required/>
+
+    <label for="locationInput">জেলা:</label>
+    <input type="text" id="locationInput" required/>
+
+    <label for="paymentMethod">পেমেন্ট পদ্ধতি:</label>
+    <select id="paymentMethod" required onchange="togglePaymentProof()">
+      <option value="">-- নির্বাচন করুন --</option>
+      <option value="cod">Cash on Delivery</option>
+      <option value="bkash">Bkash</option>
+      <option value="nagod">Nagad</option>
+    </select>
+
+    <div id="paymentProofFields" style="display:none;">
+      <label for="paymentNumber">পাঠানো নম্বর:</label>
+      <input type="tel" id="paymentNumber" placeholder="০১XXXXXXXXX" />
+      <label for="transactionId">ট্রানজ্যাকশন আইডি:</label>
+      <input type="text" id="transactionId" />
+    </div>
+
+    <p id="totalPrice">মোট বিল: ৳0</p>
+
+    <button type="submit">✅ অর্ডার করুন</button>
+    <button type="button" id="closeFormBtn" onclick="closeOrderForm()">❌ বাতিল</button>
+  </form>
+</div>
+
+<footer>
+  <p>যোগাযোগ: <a href="tel:01728898569">01728898569</a></p>
+  <p>© 2025 Kina‑Kataa MARKET WORLD</p>
+  <div style="text-align:center; margin-top:30px;">
+  <span style="font-size:14px; color:#555; animation: fadeIn 2s ease-in-out, pulse 3s infinite;">
+    ⚡ Powered by <strong style="color:#e91e63;">MD SAZZAD HOWLADER</strong>
+  </span>
+</div>
+</footer>
+  <script>
+const sheetURL = "https://script.google.com/macros/s/AKfycbzvkwRZMkx6f4W735HrljZm_ATD1G9v1JBi2oD2fVbNus_V8Ye6lq1dxQIswHLAwsau5Q/exec";
+let allProducts = [], currentProduct = null;
+
+// Google Drive লিংক কনভার্ট করার ফাংশন
+function convertDriveLink(url) {
+  if (!url) return url;
+  
+  // Google Drive লিংক হলে
+  if (url.includes('drive.google.com/file/d/')) {
+    const match = url.match(/\/d\/([^\/]+)/);
+    if (match && match[1]) {
+      return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    }
+  }
+  
+  // Google Drive শেয়ারেবল লিংক হলে
+  if (url.includes('drive.google.com/open?id=')) {
+    const match = url.match(/id=([^&]+)/);
+    if (match && match[1]) {
+      return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    }
+  }
+  
+  return url;
+}
+
+function createImageSlider(images) {
+  const slider = document.createElement('div');
+  slider.className = 'slider';
+
+  const slides = document.createElement('div');
+  slides.className = 'slides';
+
+  images.forEach(src => {
+    const img = document.createElement('img');
+    img.src = convertDriveLink(src.trim()); // এখানে লিংক কনভার্ট করা হচ্ছে
+    img.onerror = function() {
+      this.style.display = 'none'; // ইমেজ লোড না হলে হাইড করে দেয়
+    };
+    slides.appendChild(img);
+  });
+
+  slider.appendChild(slides);
+
+  const countLabel = document.createElement('div');
+  countLabel.className = 'count-label';
+  countLabel.textContent = `${images.length} ছবি`;
+  slider.appendChild(countLabel);
+
+  if (images.length > 1) {
+    const buttons = document.createElement('div');
+    buttons.className = 'slider-buttons';
+
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = '‹';
+
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = '›';
+
+    buttons.appendChild(prevBtn);
+    buttons.appendChild(nextBtn);
+    slider.appendChild(buttons);
+
+    let currentIndex = 0;
+    function updateSlider() {
+      slides.style.transform = `translateX(-${currentIndex * 100}%)`;
+    }
+
+    prevBtn.onclick = () => {
+      currentIndex = (currentIndex - 1 + images.length) % images.length;
+      updateSlider();
+    };
+    nextBtn.onclick = () => {
+      currentIndex = (currentIndex + 1) % images.length;
+      updateSlider();
+    };
+  }
+
+  return slider;
+}
+
+async function fetchProducts() {
+  const grid = document.getElementById("products");
+  grid.innerHTML = "<p style='text-align:center;'>🔄 পণ্য লোড হচ্ছে...</p>";
+  try {
+    const res = await fetch(sheetURL);
+    const data = await res.json();
+    allProducts = Array.isArray(data) ? data : Array.isArray(data.products) ? data.products : [];
+    renderProducts(allProducts);
+  } catch (err) {
+    console.error(err);
+    grid.innerHTML = "<p style='color:red;text-align:center;'>❌ পণ্য লোড হয়নি।</p>";
+  }
+}
+
+function renderProducts(products) {
+  const grid = document.getElementById("products");
+  grid.innerHTML = products.length ? "" : "<p style='text-align:center;'>😔 কোন পণ্য নেই।</p>";
+  
+  products.forEach(p => {
+    const name = p.name || "নাম নেই";
+    const price = parseInt(p.price) || 0;
+    const delivery = parseInt(p.delivery || p["delivery charge"]) || 0;
+    const desc = p.description || "";
+    const category = (p.category || "").toLowerCase();
+    let photosStr = p.photos || p.photo || "";
+    
+    // Google Drive লিংক কনভার্ট করা
+    const images = photosStr.split(',')
+      .map(x => x.trim())
+      .filter(x => x)
+      .map(convertDriveLink);
+
+    const card = document.createElement("div");
+    card.className = "product-card";
+
+    if (images.length) card.appendChild(createImageSlider(images));
+
+    card.innerHTML += `
+      <h3>${name}</h3>
+      <p>${desc}</p>
+      <p>মূল্য: <strong>৳${price}</strong></p>
+      <p>ডেলিভারি: <strong>৳${delivery}</strong></p>
+      <button onclick="openOrderForm('${name.replace(/'/g, "\\'")}', ${price}, ${delivery})">✅ অর্ডার</button>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function filterProducts() {
+  const query = document.getElementById("searchInput").value.toLowerCase();
+  const category = document.getElementById("categorySelect").value;
+  const filtered = allProducts.filter(p => {
+    const name = (p.name || "").toLowerCase();
+    const cat = (p.category || "").toLowerCase();
+    return name.includes(query) && (category === "all" || cat === category);
+  });
+  renderProducts(filtered);
+}
+
+function openOrderForm(name, price, delivery) {
+  currentProduct = { name, price, delivery };
+  document.getElementById("formProductName").textContent = name;
+  document.getElementById("formProductPrice").textContent = price;
+  document.getElementById("formDeliveryCharge").textContent = delivery;
+  document.getElementById("quantityInput").value = 1;
+  calculateTotal();
+  document.getElementById("orderFormContainer").style.display = "flex";
+}
+
+function closeOrderForm() {
+  document.getElementById("orderFormContainer").style.display = "none";
+}
+
+function togglePaymentProof() {
+  const method = document.getElementById("paymentMethod").value;
+  const proof = document.getElementById("paymentProofFields");
+  proof.style.display = (method === "bkash" || method === "nagod") ? "block" : "none";
+}
+
+function calculateTotal() {
+  const qty = parseInt(document.getElementById("quantityInput").value) || 1;
+  const total = currentProduct.price * qty + currentProduct.delivery;
+  document.getElementById("totalPrice").textContent = `মোট বিল: ৳${total}`;
+}
+
+document.getElementById("quantityInput").addEventListener("input", calculateTotal);
+
+function submitOrder(event) {
+  event.preventDefault();
+  const color = document.getElementById("colorSelect").value;
+  const qty = document.getElementById("quantityInput").value;
+  const name = document.getElementById("nameInput").value;
+  const phone = document.getElementById("phoneInput").value;
+  const address = document.getElementById("addressInput").value;
+  const location = document.getElementById("locationInput").value;
+  const method = document.getElementById("paymentMethod").value;
+  const payNum = document.getElementById("paymentNumber").value;
+  const trx = document.getElementById("transactionId").value;
+
+  let msg = `🛒 অর্ডারঃ\n`;
+  msg += `🔹 পণ্য: ${currentProduct.name}\n`;
+  msg += `🔹 রঙ: ${color}\n`;
+  msg += `🔹 পরিমাণ: ${qty}\n`;
+  msg += `🔹 মূল্য: ৳${currentProduct.price}\n`;
+  msg += `🔹 ডেলিভারি: ৳${currentProduct.delivery}\n`;
+  msg += `🔹 মোট: ৳${currentProduct.price * qty + currentProduct.delivery}\n\n`;
+
+  msg += `👤 ক্রেতার তথ্য:\n`;
+  msg += `🔸 নাম: ${name}\n`;
+  msg += `🔸 মোবাইল: ${phone}\n`;
+  msg += `🔸 ঠিকানা: ${address}\n`;
+  msg += `🔸 জেলা: ${location}\n\n`;
+
+  msg += `💳 পেমেন্ট: ${method}\n`;
+  if (method !== "cod") {
+    msg += `🔸 পাঠানো নম্বর: ${payNum}\n`;
+    msg += `🔸 TrxID: ${trx}\n`;
+  }
+
+  const whatsappLink = `https://wa.me/8801728898569?text=${encodeURIComponent(msg)}`;
+  window.open(whatsappLink, "_blank");
+  closeOrderForm();
+}
+
+window.onload = fetchProducts;
+</script>
+</body>
+</html>
